@@ -1,0 +1,67 @@
+         DCL-F SHIFTWEEK USAGE(*INPUT) KEYED RENAME(SHIFTWEEK:SHIFTWEEKR);
+         DCL-F SHIFTRATES DISK USAGE(*INPUT) RENAME(SHIFTRATES:SHIFTRATER);
+         DCL-F CONFIRMPAY WORKSTN;
+         DCL-F PAYRPT     PRINTER OFLIND(*IN01);
+         DCL-S HOURSOVER PACKED(3);
+         DCL-PI MAIN EXTPGM('PAYROLLPGM');
+           SHIFTTYPE CHAR(30);
+         END-PI;
+         READ ShiftRates;
+         *IN01 = *ON;
+         READ SHIFTWEEK;
+         DOW NOT %EOF;
+           EXSR PAYSR;
+           IF *IN01 = *ON;
+             WRITE TITLE;
+             WRITE COLHDG;
+             *IN01 = *OFF;
+           ENDIF;
+           WRITE EMPDETAIL;
+           READ SHIFTWEEK;
+
+         ENDDO;
+
+         TOTWKPAY = TOTREGPAY + TOTOVTPAY;
+         WRITE TOTALS;
+         EXFMT RECORD1;
+         *INLR = *ON;
+         RETURN;
+
+         BEGSR PAYSR;
+           SELECT;
+             WHEN WORKSHIFT = '1';
+               HOURLYRATE = DAYHRS;
+             WHEN WORKSHIFT = '2';
+               HOURLYRATE = AFTHRS;
+             WHEN WORKSHIFT = '3';
+               HOURLYRATE = NIGHTHRS;
+           ENDSL;
+
+           SELECT;
+                        WHEN PAYCLASS =  1 ;
+                          HOURLYRATE = HOURLYRATE * 1.094;
+                        WHEN PAYCLASS =  2 ;
+                          HOURLYRATE = HOURLYRATE * 1.062;
+                        WHEN PAYCLASS =  3 ;
+                          HOURLYRATE = HOURLYRATE * 0.957;
+                        WHEN PAYCLASS =  4;
+                          HOURLYRATE = HOURLYRATE;
+                        ENDSL;
+
+                        HOURSOVER = HRSWORKED - 40;
+
+                        SELECT;
+                        WHEN HOURSOVER > 0;
+                          OVERPAY = HOURLYRATE * 1.5 * HOURSOVER;
+                          REGULARPAY = 40 * HOURLYRATE;
+                 OTHER;
+                          REGULARPAY = HRSWORKED * HOURLYRATE;
+                          OVERPAY = 0;
+                        ENDSL;
+
+                        WEEKLYPAY = REGULARPAY + OVERPAY;
+
+                        TOTREGPAY = TOTREGPAY + REGULARPAY;
+                        TOTOVTPAY = TOTOVTPAY + OVERPAY;
+
+       ENDSR;
