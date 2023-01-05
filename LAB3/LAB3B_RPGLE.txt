@@ -1,0 +1,82 @@
+         DCL-F REALDSP2 Workstn;  
+
+           
+         EXFMT SaleInfo; 
+
+         DOW NOT(*IN03); 
+           IF HousePrice = 0; 
+             *IN81 = *ON;    
+             EXFMT SaleInfo; 
+            *IN81 = *OFF;    
+             ITER;   
+             ELSEIF PRESIDENCE = ' ';
+             *IN82 = *ON;
+             EXFMT SaleInfo;
+             *IN82 = *OFF;
+             ITER; 
+             ELSEIF FIRSTTIME = ' ';
+             *IN83 = *ON;
+             EXFMT SaleInfo;
+             *IN83 = *OFF;
+             ITER; //continue
+             ELSEIF *IN06 = '1'; 
+               LEGALFEES = 900;
+               SURVEYFEE = 850;
+               TITLEINS = 265;
+               INSPECTION = 425;
+              EXFMT SaleInfo; 
+               *IN06 = *OFF;  
+              ITER; 
+             ELSE;
+               EXSR BUYERSR;
+               EXSR SELLERSR;
+               *IN79 = *ON;
+               WRITE SaleInfo;  
+               EXFMT Result;    
+               *IN79 = *OFF;
+           ENDIF;
+           IF (*IN03 = *OFF);
+
+                 EXFMT SALEINFO;
+           ENDIF;
+           ENDDO;
+
+           *INLR = *ON; 
+           RETURN;  
+
+
+           BEGSR BUYERSR;  
+            SELECT;
+            When HOUSEPRICE <= 55000;
+              LTTAX = HOUSEPRICE * 0.005;
+            When HOUSEPRICE <= 250000;
+              LTTAX = HOUSEPRICE * 0.01;
+            When HOUSEPRICE <= 399999;
+              LTTAX = HOUSEPRICE *  .015;
+            When HOUSEPRICE <= 2000000;
+              LTTAX = HOUSEPRICE * 0.02;
+            When HOUSEPRICE <= 9999999;
+              LTTAX = HOUSEPRICE * 0.025;
+           ENDSL;
+
+           IF FIRSTTIME = 'Y';
+           LTTAX = 0;
+           ENDIF;
+
+           COMMISSION = HOUSEPRICE * (AGENTRATE / 100);
+           TOTALCOSTS = LEGALFEES + SURVEYFEE + TITLEINS + INSPECTION;
+           BUYERPAYS = HOUSEPRICE + TOTALCOSTS + LTTAX;
+
+           IF TOTALCOSTS <= 1000;
+             *IN84 = *ON;
+             ENDIF;
+         ENDSR;
+
+
+       BEGSR SELLERSR;
+           IF PRESIDENCE = 'N';
+           CAPITALGNS = HOUSEPRICE / 2 * 0.07;
+           ENDIF;
+
+         SELLERNETS = HOUSEPRICE - COMMISSION - CAPITALGNS;
+       ENDSR;
