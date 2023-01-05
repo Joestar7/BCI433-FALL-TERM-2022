@@ -1,0 +1,95 @@
+             DCLF       LAB4DSP
+             DCL        &OUTQ *CHAR 10
+             DCL        &OUTQLIB *CHAR 10
+             DCL        &PRVSIGN *CHAR 13
+             DCL        &DATE *CHAR 8
+             DCL        &TIME *CHAR 8
+             SNDRCVF
+             DOWHILE    (&IN03 = '0')
+                IF         (&IN21 *EQ '1') DO
+                   CALL       QusCmdLn
+                   CHGVAR     &IN32 '0'
+                   CHGVAR     &IN31 '1'
+                ENDDO
+                CHGVAR     &IN30 '0'
+                SELECT
+                   WHEN       (&OPTION = '1') CALLSUBR OPTION1
+                   WHEN       (&OPTION = '2') CALLSUBR OPTION2
+                   WHEN       (&OPTION = '3') CALLSUBR OPTION3
+                   WHEN       (&OPTION = '4') CALLSUBR OPTION4
+                   WHEN       (&OPTION = '5') CALLSUBR OPTION5
+                   WHEN       (&OPTION = '6') CALLSUBR OPTION6
+
+                   OTHERWISE  CALLSUBR ERROR
+                ENDSELECT
+                SNDRCVF
+             ENDDO
+
+             SUBR       OPTION1
+
+                CALL       REALES2
+                CHGVAR     &IN03 '1'
+                CHGVAR     &MSGTXT1 ('The students Real Estate RPGLE program was run')
+                CHGVAR     &MSGTXT2 ('CLLE Programs can manage how an RPGLE Business +
+                             Application is run')
+             ENDSUBR
+
+             SUBR       OPTION2
+                WRKOBJPDM  *CURLIB OBJATR('PF-SRC')
+                CHGVAR     &IN03 '1'
+                CHGVAR     &MSGTXT1 ('You were given access to all the source code in your +
+                             current library')
+                CHGVAR     &MSGTXT2 ('CLLE Programs can provide easy access to your objects on +
+                             the system')
+             ENDSUBR
+
+             SUBR       OPTION3
+                ?CHGPRF
+                MONMSG     MSGID(CPF6801)
+                CHGVAR     &MSGTXT1 ('The initial program for this user profile was changed')
+                CHGVAR     &MSGTXT2 ('CLLE Programs can limit the parameters you see for a +
+                             command')
+                CHGVAR     &IN32 '1'
+                CHGVAR     &IN31 '0'
+                CHGVAR     &MSGTXT3 ('Set your initial program to *NONE or a viable name or +
+                             you cannot sign back in')
+             ENDSUBR
+
+             SUBR       OPTION4
+                CHGVAR     &IN32 '0'
+                CHGVAR     &IN31 '1'
+                RTVUSRPRF  OUTQ(&OUTQ) OUTQLIB(&OUTQLIB)
+
+                CHGVAR     &MSGTXT1 ('The startup program for this account is ' *CAT &OUTQLIB +
+                             *TCAT '/' *CAT &OUTQ)
+                CHGVAR     &MSGTXT2 ('CLLE Programs can report on the logged on user +
+                             information')
+
+
+             ENDSUBR
+
+             SUBR       OPTION5
+                DSPSYSVAL  SYSVAL(QCRTAUT)
+                CHGVAR     &MSGTXT1 ('The QGPL library Creation Authority is set to *SYSVAL')
+                CHGVAR     &MSGTXT2 ('CLLE Programs can report on system values and how they +
+                             are used')
+             ENDSUBR
+
+             SUBR       OPTION6
+
+                RTVUSRPRF  PRVSIGN(&PRVSIGN)
+                CHGVAR     &DATE (%SST(&PRVSIGN 4 2) *CAT '/' *CAT %SST(&PRVSIGN 6 2) *CAT '/' +
+                             *CAT %SST(&PRVSIGN 2 2))
+                CHGVAR     &TIME (%SST(&PRVSIGN 8 2) *CAT ':' *CAT %SST(&PRVSIGN 10 2) *CAT +
+                             ':' *CAT %SST(&PRVSIGN 12 2))
+                CHGVAR     &MSGTXT1 ('Previous sign on for user ' *CAT &OUTQLIB *TCAT ' was on +
+                             ' *CAT &DATE *CAT &TIME)
+                CHGVAR     &MSGTXT2 ('CLLE Programs can report on and manage the users on the +
+                             system')
+             ENDSUBR
+
+             SUBR       ERROR
+                CHGVAR     &IN30 '1'
+                CHGVAR     &IN33 '1'
+                CHGVAR     &IN32 '1'
+             ENDSUBR
