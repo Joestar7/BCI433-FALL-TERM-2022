@@ -1,2 +1,2 @@
-# BCI433-FALL-TERM-2022-Seneca
-include 12 labs
+# BCI433-FALL-TERM-2022
+*From Lab3A to Lab9B
