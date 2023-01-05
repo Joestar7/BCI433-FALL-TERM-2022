@@ -1,0 +1,36 @@
+             PGM
+             DLTF       FC3UA15/SALESSTAF2
+             MONMSG     MSGID(CPF2105)
+
+
+             CPYF       FROMFILE(BCI433LIB/SALESSTAFF) TOFILE(FC3UA15/SALESSTAF2) +
+                          MBROPT(*REPLACE) CRTFILE(*YES)
+
+
+
+             ADDLIBLE   BCI433LIB
+             MONMSG     MSGID(CPF0000)
+             CLROUTQ    FC433A15
+
+             OVRPRTF    FILE(QPQUPRFIL) SPLFNAME(BEFORE_UPD)
+             RUNQRY     *NONE FC3UA15/SALESSTAF2 *PRINTER
+
+             OVRPRTF    FILE(QPQUPRFIL) SPLFNAME(SALESTRANS)
+             RUNQRY     *NONE BCI433LIB/SALESTRANS *PRINTER
+
+             OVRDBF     SALESSTAF2 FC3UA15/SALESSTAF2
+             CALL       SLSTRNPGM
+
+             OVRPRTF    FILE(QPQUPRFIL) SPLFNAME(AFTER_UPD)
+             RUNQRY     *NONE FC3UA15/SALESSTAF2 *PRINTER
+
+             DSPSPLF    BEFORE_UPD
+             DSPSPLF    SALESTRANS
+             DSPSPLF    UPDREPORT
+             DSPSPLF    AFTER_UPD
+
+             WRKOUTQ    FC433A15
+
+             DSPJRN     JRN(FC3UA15/QSQJRN) FILE((FC3UA15/SALESSTAF2))
+
+             ENDPGM                                 
