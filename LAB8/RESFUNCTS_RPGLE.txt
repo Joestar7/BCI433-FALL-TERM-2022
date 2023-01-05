@@ -1,0 +1,31 @@
+         Ctl-Opt NoMain  ;
+
+      /COPY LAB8,RESPROTO
+
+         Dcl-Proc PriceOfLTTAX EXPORT;
+
+           Dcl-PI *N Zoned(8:2);
+             HOUSEPRICE Packed(7);
+           END-PI;
+
+           Dcl-s LTTAX Zoned(8:2);
+
+           SELECT;
+            When HOUSEPRICE <= 55000;
+              LTTAX = HOUSEPRICE * 0.005;
+            When HOUSEPRICE <= 250000;
+              LTTAX = HOUSEPRICE * 0.01;
+            When HOUSEPRICE <= 399999;
+              LTTAX = HOUSEPRICE *  .015;
+            When HOUSEPRICE <= 2000000;
+              LTTAX = HOUSEPRICE * 0.02;
+            When HOUSEPRICE <= 9999999;
+              LTTAX = HOUSEPRICE * 0.025;
+           ENDSL;
+
+           RETURN LTTAX;
+
+         END-PROC;
+
+
+                                 

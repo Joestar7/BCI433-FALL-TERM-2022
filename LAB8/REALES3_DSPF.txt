@@ -1,0 +1,72 @@
+     A          R SALEINFO                  CF03(03 'Exit Program')
+     A                                      CF06(06 'Use Standard Costs')
+     A                                  1 70DATE
+     A                                      EDTCDE(Y)
+     A                                  1  4USER
+     A                                  1 20'R E A L   E S T A T E   T R A N S -
+     A                                      A C T I O N'
+     A                                  2  4'FANGZHOULI'
+     A                                      DSPATR(RI)
+     A                                  4  4'House Price:'
+     A                                  7  4'Seller Principal Residence:'
+     A                                 14  6'F3 - Exit'
+     A                                  9  4'Agent Commission %:'
+     A                                  6  4'S E L L E R'
+     A                                      DSPATR(RI)
+     A                                  6 47'B U Y E R'
+     A                                      DSPATR(RI)
+     A                                  7 47'First Time Buyer?'
+     A                                  9 47'C O S T S'
+     A                                 11 47'Legal Fees:'
+     A                                 12 47'Survey Fee:'
+     A                                 13 47'Title Insurance:'
+     A                                 14 47'Home Inspection:'
+
+     A            HOUSEPRICE     7Y 0B  4 17
+     A                                      EDTCDE(2)
+     A  81                                  DSPATR(RI)
+     A  81                                  DSPATR(PC)
+     A  79                                  DSPATR(PR)
+     A            PRESIDENCE     1   B  7 32
+     A                                      VALUES('Y' 'N')
+     A  82                                  DSPATR(RI)
+     A  82                                  DSPATR(PC)
+
+     A            AGENTRATE      4Y 2B  9 24EDTCDE(1)
+     A  79                                  DSPATR(PR)
+     A            LEGALFEES      4Y 0B 11 59EDTCDE(2)
+     A  79                                  DSPATR(PR)
+     A            SURVEYFEE      4Y 0B 12 59EDTCDE(2)
+     A  79                                  DSPATR(PR)
+     A            TITLEINS       4Y 0B 13 64EDTCDE(2)
+     A  79                                  DSPATR(PR)
+     A            INSPECTION     4Y 0B 14 64EDTCDE(2)
+     A  79                                  DSPATR(PR)
+     A  82                              7 35'Y OR N'
+     A            FIRSTTIME      1   B  7 65VALUES('Y' 'N')
+     A  83                                  DSPATR(RI)
+     A  83                                  DSPATR(PC)
+     A  79                                  DSPATR(PR)
+     A  83                              7 67'Y OR N'
+     A                                 10 47'F6 - Use Standard Costs'
+     A                                      COLOR(RED)
+     A  81                              4 27'Value must not be zero'
+     A  81                                  DSPATR(PC)
+     A                                      COLOR(GRN)
+     A          R RESULT                    OVERLAY
+     A                                      CF03(03 'Exit Program')
+     A                                 18  4'Commission Total:'
+     A                                 19  4'Capital Gains Tax:'
+     A                                 21  4'Seller Nets:'
+     A                                 18 47'Total of Above Costs:'
+     A                                 19 47'Land Transfer Tax:'
+     A                                 21 47'Buyer Pays:'
+     A            COMMISSION     8Y 2O 18 22EDTCDE(1)
+     A            TOTALCOSTS     7  2O 18 69EDTCDE(1)
+     A            CAPITALGNS     8  2O 19 23EDTCDE(1)
+     A            LTTAX          8  2  19 66EDTCDE(1)
+     A            BUYERPAYS      9  2  21 59EDTCDE(1)
+     A            SELLERNETS     9  2  21 17EDTCDE(1)
+     A                                 23  7'F3 - Exit'
+     A  84                             23 47'UNREALISTIC COSTS SUPPLIED'
+     A  84                                  DSPATR(RI)  

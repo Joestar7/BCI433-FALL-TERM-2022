@@ -1,0 +1,3 @@
+         Dcl-PR PriceOfLTTAX Zoned(8:2);
+           HOUSEPRICE Packed(7);
+         END-PR;  
