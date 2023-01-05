@@ -1,0 +1,136 @@
+               //***********************************************************************
+      //* THIS PROGRAM USES A CURSOR TO LOAD A TEMPORARY RESULT TABLE FROM 3
+      //* SEPARATE TABLES, CUSTOMER2, ORDER1 AND ORDERLINE. A NUMBER IS PASSED
+      //* TO THE PROGRAM TO DETERMINE WHICH RECORDS ARE INLCUDED
+      //***********************************************************************
+           DCL-F CUSTREPORT PRINTER OFLIND(*IN01) ; // let printer file participate in
+           DCL-S OrderNumH    PACKED(5:0);
+      // Declare an indicator to handle end of result set (file)
+           DCL-S EndOfFile  IND;
+           DCL-S Lines Packed(1:0);
+
+      // All Host Variables available under a single name
+           DCL-DS OrdersRecord;
+             CustName    Char(31);
+             OrderNum    Packed(5:0);
+             OrderDate   Date;
+             PartNum     Char(4);
+             Quantity    Packed(3:0);
+             QtPrice     Packed(6:2);
+             ExtPrice    Packed(7:2);
+           END-DS;
+
+
+       // LimitIn is passed to the program
+
+
+          DCL-PI  Main EXTPGM('ORDERSSQL');
+            LimitIn  Packed(15:5);
+          END-PI;
+
+
+       // Main Routine
+
+                SpendLimit = LimitIn;
+                EXSR PrepareFiles;
+                Write ReporTitle;
+                Write ColHeading;
+                EXSR GetRow;
+                Write NextCust;
+                OrderNumH = OrderNum;
+                DOW NOT EndOfFile;
+                    IF *IN01 = *ON;
+                        Write ReporTitle;
+                        Write ColHeading;
+                       *IN01 = *OFF;
+                    ENDIF;
+                    // Handle Control Breaks on Order Number
+                    If OrderNumH = OrderNum;
+                      Write OrdDetail;
+                    Else;
+                      OrderNumH = OrderNum;
+                      Write OrdTotal;
+                      TotalAll = TotalAll + TotalOrd;
+                      TotalOrd = 0;
+                      Write NextCust;
+                      Write OrdDetail;
+
+                    ENDIF;
+
+                    TotalOrd = TotalOrd + ExtPrice;
+                    UnderLimit += 1;
+                    EXSR GetRow;
+                ENDDO;
+                UnderLimit = Lines - UnderLimit;
+                Write OrdTotal;
+                TotalAll = TotalAll + TotalOrd;
+                Write AllOrders;
+                EXSR   WRAPUP;
+                Write NotInclude;
+                *INLR = *ON;
+                RETURN;
+        //**********************************************************************
+        // O P E N F I L E S   S U B R O U T I N E
+        //**********************************************************************
+           BEGSR  PrepareFiles;
+
+          // S E T   U P   T H E   T E M P O R A R Y   R E S U L T  S T R U C T U
+            EXEC SQL
+             DECLARE OrdersCursor CURSOR
+               FOR
+            SELECT TRIM(FIRST_NAME) || ' ' || LAST_NAME AS CUSTNAME,
+                   O.ORDER_NUMBER,
+                   ORDER_DATE,
+                   PART_NUMBER,
+                   NUMBER_ORDERED,
+                   QUOTED_PRICE,
+                   NUMBER_ORDERED * QUOTED_PRICE
+            FROM   BCI433LIB/CUSTOMER2 C, BCI433LIB/ORDER1 O,
+                   BCI433LIB/ORDERLINE OL
+            WHERE  C.CUSTOMER_NUMBER = O.CUSTOMER_NUMBER AND
+                   O.ORDER_NUMBER = OL.ORDER_NUMBER      AND
+                   NUMBER_ORDERED * QUOTED_PRICE > :SpendLimit
+            FOR READ ONLY;
+
+            EXEC SQL
+              SELECT COUNT(*)
+                INTO :Lines
+                FROM BCI433LIB/ORDERLINE;
+
+
+        // A   T E M P O R A R Y   R E S U L T   T A B L E   I S   C R E A T E D
+            EXEC SQL
+               OPEN  OrdersCursor;
+            IF SQLCODE <> 0 OR SQLWN0 = 'W';
+              EndOfFile = *ON;
+            ENDIF;
+
+            ENDSR;
+        //**********************************************************************
+        //   G E T     R O W    S U B R O U T I N E
+        //**********************************************************************
+
+             BEGSR     GETROW;
+        EXEC SQL
+             FETCH NEXT
+             FROM  OrdersCursor
+             INTO :OrdersRecord;
+
+             If SQLCODE <> 0 OR SQLWN0 = 'W';
+                EndOfFile = *ON;
+             EndIf;
+
+             ENDSR;
+        //**********************************************************************
+        // W R A P U P     S U B R O U T I N E
+        //**********************************************************************
+            BEGSR WRAPUP;
+                EXEC SQL
+                  CLOSE OrdersCursor;
+                  IF SQLCODE <> 0 OR SQLWN0 = 'W';
+                    DSPLY 'PROBLEM CLOSING CURSOR';
+                  ENDIF;
+
+
+
+              ENDSR;                                 
